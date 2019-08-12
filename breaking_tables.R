@@ -1,5 +1,7 @@
 #This function was written to break a .docx file with multiple tables within it and transform each table
-#into a data frame, and every one of them will be stored into a list.
+#into a data frame, and every one of them will be stored into a list. 
+
+#It needs the packages "docxtractr", which does similar, but it is not necessarily what I was looking for.
 
 breaking_tables <- function(data){
   library(docxtractr)
