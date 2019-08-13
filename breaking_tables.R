@@ -13,8 +13,8 @@ breaking_tables <- function(data){
     }
   }
   
-  is.line.empty <- function(x){ #A function to test if an entire line or column is empty.
-    n <- length(x)
+  is.line.empty <- function(x){ #A function to test if an entire line or column is empty, because we're gonna need to drop empty
+    n <- length(x)              #lines and columns in order to preserve only the tables with some data on them.
     line <- NULL
     for(i in 1:n){
       if(is.na(x[i]) == T){
