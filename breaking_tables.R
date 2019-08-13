@@ -1,20 +1,30 @@
 #This function was written to break a .docx file with multiple tables within it and transform each table
-#into a data frame, and every one of them will be stored into a list. 
+#into a data frame, and every one of them will be stored into a list. There is a bug, because somehow it
+#doesn't get the last table in the file and I still don't know why :'(
 
 #It needs the packages "docxtractr", which does similar, but it is not necessarily what I was looking for.
 
 breaking_tables <- function(data){
-  library(docxtractr)
-  tabs <- docx_extract_all_tbls(data,1)[[1]]
+  suppressWarnings(library(docxtractr))
+  tabs <- docx_extract_all_tbls(data)
   
-  for(i in 1:nrow(tabs)){
-    for(j in 1:ncol(tabs)){
-      if(isTRUE(tabs[i,j] == "")){ tabs[i,j] <- NA}
+  if(length(tabs) > 1){
+    aux.tabs <- NULL
+    for(i in 1:length(tabs)){
+      aux.tabs[[i]] <- as.data.frame(tabs[[i]])
     }
   }
   
-  is.line.empty <- function(x){ #A function to test if an entire line or column is empty, because we're gonna need to drop empty
-    n <- length(x)              #lines and columns in order to preserve only the tables with some data on them.
+  for(i in 1:length(aux.tabs)){
+    for(l in 1:nrow(aux.tabs[[i]])){
+      for(j in 1:ncol(aux.tabs[[i]])){
+      if(isTRUE(aux.tabs[[i]][l,j] == "")){ aux.tabs[[i]][l,j] <- NA}
+      }
+    }
+  }
+  
+  is.line.empty <- function(x){ #A function to test if an entire line or column is empty.
+    n <- length(x)
     line <- NULL
     for(i in 1:n){
       if(is.na(x[i]) == T){
@@ -29,50 +39,30 @@ breaking_tables <- function(data){
       return(FALSE)
     }
   }
-  
-  
-  ind <- NULL
-  for(i in 1:nrow(tabs)){
-    if(is.line.empty(tabs[i,]) == T){
-      ind[i] <- 1
-    } else {
-      ind[i] <- 0
-    }
-  }
-  
-  tabs$ind <- ind
+
   tables <- list()
-  
-  aux.table <- NULL; l <- 1
-  for(j in 1:24){
+  for(i in 1:length(aux.tabs)){
+    l <- 1
     aux.table <- NULL
-    for(i in l:nrow(tabs)){
-      if(tabs$ind[i] == 1){
-        l <- i + 1
-        break
-      } else{
-        aux.table <- rbind(aux.table, tabs[i,1:10])
+    for(j in l:nrow(aux.tabs[[i]])){
+      if(is.line.empty(aux.tabs[[i]][j,]) == FALSE){
+        next
+      } else {
+        tables <- append(tables, list(aux.tabs[[i]][l:j,]))
+        l <- j + 1
       }
-      tables[[j]] <- aux.table
     }
   }
   
-  tables <- lapply(tables, as.data.frame)
-  aux.tables <- list()
-  
+  aux.tables <- vector(mode = "list", length(tables))
   for(i in 1:length(tables)){
     cols <- NULL
-    if(ncol(tables[[i]]) == 0){
-      next
-    } else {
-      for(j in 1:ncol(tables[[i]])){
-        if(is.line.empty(tables[[i]][,j]) == T){
-          cols <- c(cols, j)
-          #print(cols)
-        }
+    for(j in 1:ncol(tables[[i]])){
+      if(sum(!is.na(tables[[i]][,j])) == 0){
+        cols <- c(cols, paste0("V",j))
       }
-      aux.tables[[i]] <- tables[[i]][-c(cols)]
+      aux.tables[[i]] <- tables[[i]][,which(cols %in% names(tables[[i]]))]
     }
   }
-  return(aux.tables)
+  return(list(tables = aux.tables))
 }
