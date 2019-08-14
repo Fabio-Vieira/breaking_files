@@ -1,68 +1,54 @@
 #This function was written to break a .docx file with multiple tables within it and transform each table
-#into a data frame, and every one of them will be stored into a list. There is a bug, because somehow it
-#doesn't get the last table in the file and I still don't know why :'(
+#into a data frame, and every one of them will be stored into a list.
 
 #It needs the packages "docxtractr", which does similar, but it is not necessarily what I was looking for.
 
-breaking_tables <- function(data){
-  suppressWarnings(library(docxtractr))
-  tabs <- docx_extract_all_tbls(data)
+breaking_tables <- function(data, dir){
+  if(is.character(data) == FALSE){return(print("data has to be of type character!"))}
+  if(is.character(dir) == FALSE){return(print("dir has to be of type character!"))}
+  aux.dir <- strsplit(dir, split = as.character())
+  #just to make sure that our dir has "/" as its last character to separate the dir's name of our data
+  if(tail(aux.dir[[1]], n = 1L) != "/"){return(print("The last character of dir has to be '/'."))}
+  library(docxtractr)
+  library(rlist)
+  data <- read_docx(paste0(dir, data))
   
-  if(length(tabs) > 1){
-    aux.tabs <- NULL
-    for(i in 1:length(tabs)){
-      aux.tabs[[i]] <- as.data.frame(tabs[[i]])
-    }
-  }
+  tbs <- docx_extract_all_tbls(data)
+  tbs <- lapply(tbs, as.data.frame) #we need to transform everything in our list into data frames
   
-  for(i in 1:length(aux.tabs)){
-    for(l in 1:nrow(aux.tabs[[i]])){
-      for(j in 1:ncol(aux.tabs[[i]])){
-      if(isTRUE(aux.tabs[[i]][l,j] == "")){ aux.tabs[[i]][l,j] <- NA}
-      }
-    }
-  }
-  
-  is.line.empty <- function(x){ #A function to test if an entire line or column is empty.
-    n <- length(x)
-    line <- NULL
-    for(i in 1:n){
-      if(is.na(x[i]) == T){
-        line[i] <- 1
-      } else {
-        line[i] <- 0
-      }
-    }
-    if(sum(line) == n){
+  is.line.empty <- function(x){#A function to test if a line or a column is empty, because we'll need to breaking the data frames
+    n <- length(x)             #inside the list into tables or because we'll need to erase empty columns in our tables
+    if(sum(is.na(x)) == n){
       return(TRUE)
     } else {
       return(FALSE)
     }
   }
-
+  
+  for(i in 1:length(tbs)){
+    tbs[[i]][tbs[[i]] == ""] <- NA
+  }
+  
   tables <- list()
-  for(i in 1:length(aux.tabs)){
+  for(i in 1:length(tbs)){
     l <- 1
-    aux.table <- NULL
-    for(j in l:nrow(aux.tabs[[i]])){
-      if(is.line.empty(aux.tabs[[i]][j,]) == FALSE){
-        next
-      } else {
-        tables <- append(tables, list(aux.tabs[[i]][l:j,]))
+    n <- rep(0,nrow(tbs[[i]]))
+    for(j in l:nrow(tbs[[i]])){
+      if(is.line.empty(tbs[[i]][j,]) == TRUE){
+        tables <- list.append(tables, tbs[[i]][l:j-1,])
         l <- j + 1
       }
     }
   }
   
-  aux.tables <- vector(mode = "list", length(tables))
   for(i in 1:length(tables)){
-    cols <- NULL
+    cols <- as.numeric(ncol(tables[[i]]))
     for(j in 1:ncol(tables[[i]])){
-      if(sum(!is.na(tables[[i]][,j])) == 0){
-        cols <- c(cols, paste0("V",j))
+      if(is.line.empty(tables[[i]][,j]) == TRUE){
+        cols[j] <- j
       }
-      aux.tables[[i]] <- tables[[i]][,which(cols %in% names(tables[[i]]))]
     }
+    tables[[i]] <- tables[[i]][,-cols[is.na(cols) == F]]
   }
-  return(list(tables = aux.tables))
+ return(tables) #return a list with all tables 
 }
