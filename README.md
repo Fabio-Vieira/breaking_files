@@ -5,4 +5,5 @@ I usually deal with huge .sav files at work, so I wrote this function to break t
 # breaking_tables
 
 This function breaks a .docx file with multiple tables and returns a list containing those tables, as long as those tables are not pasted
-as images.
+as images. This function needs the package docxtractr, and the biggest problem with it is that it is very influenced by how docxtractr
+reads the tables.
