@@ -9,8 +9,8 @@ breaking_tables <- function(data, dir){
   aux.dir <- strsplit(dir, split = as.character())
   #just to make sure that our dir has "/" as its last character to separate the dir's name of our data
   if(tail(aux.dir[[1]], n = 1L) != "/"){return(print("The last character of dir has to be '/'."))}
-  library(docxtractr)
-  library(rlist)
+  suppressPackageStartupMessages(library(docxtractr))
+  suppressPackageStartupMessages(library(rlist))
   data <- read_docx(paste0(dir, data))
   
   tbs <- docx_extract_all_tbls(data)
