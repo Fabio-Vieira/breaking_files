@@ -57,3 +57,9 @@ breaking_tables <- function(data, dir){
   }
   return(tables) 
 }
+
+
+#Usage
+t1 <- Sys.time()
+breaking_tables("Data.docx", "C://dir/") -> tables 
+difftime(Sys.time(), t1, units = "sec")
