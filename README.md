@@ -6,3 +6,7 @@ I usually deal with huge .sav files at work, so I wrote this function to break t
 
 This function breaks a .docx file with multiple tables and returns a list containing those tables, as long as those tables are not pasted
 as images. 
+
+# week_number
+
+This function counts the number of weeks in a vector with week days in Portuguese.
