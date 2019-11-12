@@ -10,3 +10,7 @@ as images.
 # week_number
 
 This function counts the number of weeks in a vector with week days in Portuguese.
+
+# growth_rate
+
+This functions calculates the yearly rate of growth in a population. It is vectorized, so in case you have multiple populations for each year it is going to give the growth rate between the corresponding pairs.
