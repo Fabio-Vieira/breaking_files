@@ -6,7 +6,8 @@
 #the dir name from the file_name. The resulting types of your files will be .csv
 
 breaking_files <- function(data, dir, n, file_name){
-  library(data.table)
+  suppressPackageStartupMessages(suppressWarnings(library(data.table)))
+  suppressPackageStartupMessages(suppressWarnings(library(zip)))
   time <- Sys.time()
   if(nrow(data) < n){
     name <- paste0(dir, file_name, ".csv")
@@ -30,7 +31,7 @@ breaking_files <- function(data, dir, n, file_name){
       }
       min <- max + 1
       max <- n * (i+1)
-        print(paste0(file_name, "_part_", i))
+      print(paste0(file_name, "_part_", i))
     }
     setwd(dir)
     zip(zipfile = paste0(file_name, ".zip"), files = paste0(list_files, ".csv"))
